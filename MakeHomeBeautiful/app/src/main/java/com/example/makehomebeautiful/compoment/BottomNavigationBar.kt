@@ -10,40 +10,37 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
+
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
+
     NavigationBar {
 
         NavigationBarItem(
-            selected = false,
-            onClick = {
-                navController.navigate("home")
-            },
+            selected = currentRoute == "home",
+            onClick = { navController.navigate("home") },
             icon = { Icon(Icons.Default.Home, null) }
         )
 
         NavigationBarItem(
-            selected = false,
-            onClick = {
-                navController.navigate("bookmark")
-            },
+            selected = currentRoute == "bookmark",
+            onClick = { navController.navigate("bookmark") },
             icon = { Icon(Icons.Default.Bookmark, null) }
         )
 
         NavigationBarItem(
-            selected = false,
-            onClick = {
-                navController.navigate("notification")
-            },
+            selected = currentRoute == "notification",
+            onClick = { navController.navigate("notification") },
             icon = { Icon(Icons.Default.Notifications, null) }
         )
 
         NavigationBarItem(
-            selected = false,
-            onClick = {
-                navController.navigate("profile")
-            },
+            selected = currentRoute == "profile",
+            onClick = { navController.navigate("profile") },
             icon = { Icon(Icons.Default.Person, null) }
         )
     }

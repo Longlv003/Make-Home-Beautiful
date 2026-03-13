@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
                     RegisterScreen(navController)
                 }
                 composable("home") {
-                    HomeScreen(navController)
+                    HomeScreen()
                 }
             }
         }

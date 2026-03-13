@@ -54,7 +54,8 @@ exports.verifyFirebaseUser = async (req, res, next) => {
 
     const decodedToken = await admin.auth().verifyIdToken(token);
 
-    const { uid, email, name, picture } = decodedToken;
+    const { uid, email, picture } = decodedToken;
+    const { name } = req.body;
 
     let user = await accModel.findOne({ firebase_uid: uid });
 

@@ -25,7 +25,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.makehomebeautiful.R
 import com.example.makehomebeautiful.api.RetrofitClient
-import com.example.makehomebeautiful.models.RegisterRequest
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
