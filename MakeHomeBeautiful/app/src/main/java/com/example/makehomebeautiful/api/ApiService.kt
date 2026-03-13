@@ -1,0 +1,23 @@
+package com.example.makehomebeautiful.api
+
+import com.example.makehomebeautiful.models.Account
+import com.example.makehomebeautiful.models.RegisterRequest
+import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+
+interface ApiService {
+    @POST("verifyFirebaseUser")
+    suspend fun verifyFirebaseUserLogin(
+        @Header("Authorization") token: String
+    ): Response<DataResponse<Account>>
+
+    @POST("verifyFirebaseUser")
+    suspend fun verifyFirebaseUserRegister(
+        @Header("Authorization") token: String,
+        @Body body: RegisterRequest
+    ): Response<DataResponse<Account>>
+
+}
