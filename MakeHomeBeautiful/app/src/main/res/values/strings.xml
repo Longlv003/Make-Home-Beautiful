@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Make Home Beautiful</string>
+    <string name="title_activity_welcome">Welcome</string>
+    <string name="title_activity_login">Login</string>
+</resources>
