@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,9 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 
 @Composable
-fun HeaderBookmark() {
+fun HeaderBookmark(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -34,6 +36,9 @@ fun HeaderBookmark() {
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp
         )
-        Icon(Icons.Default.ShoppingCart, contentDescription = null)
+
+        IconButton(onClick = { navController.navigate("cart") }) {
+            Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
+        }
     }
 }

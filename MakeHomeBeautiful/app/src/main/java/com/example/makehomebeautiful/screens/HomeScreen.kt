@@ -1,5 +1,6 @@
 package com.example.makehomebeautiful.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -9,10 +10,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -23,6 +26,8 @@ import com.example.makehomebeautiful.compoment.BottomNavigationBar
 import com.example.makehomebeautiful.compoment.CategoryItem
 import com.example.makehomebeautiful.compoment.HomeHeader
 import com.example.makehomebeautiful.compoment.ProductItem
+import com.example.makehomebeautiful.viewmodels.AddToCartState
+import com.example.makehomebeautiful.viewmodels.CartViewModel
 import com.example.makehomebeautiful.viewmodels.CategoryViewModel
 import com.example.makehomebeautiful.viewmodels.ProductViewModel
 
@@ -34,20 +39,21 @@ fun HomeScreen() {
     val currentRoute = navBackStackEntry.value?.destination?.route
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         topBar = {
-            HomeHeader(currentRoute)
+            HomeHeader(currentRoute, navController)
         },
         bottomBar = {
             BottomNavigationBar(navController)
-        }
+        },
     ) { padding ->
-
         NavHost(
             navController = navController,
             startDestination = "home",
             modifier = Modifier.padding(padding)
         ) {
             composable("home") { HomeContent() }
+            composable("cart") { CartScreen(navController) }
             composable("bookmark") { BookmarkScreen() }
             composable("notification") { NotificationScreen() }
             composable("profile") { ProfileScreen() }
@@ -58,7 +64,8 @@ fun HomeScreen() {
 @Composable
 fun HomeContent(
     categoryViewModel: CategoryViewModel = viewModel(),
-    productViewModel: ProductViewModel = viewModel()
+    productViewModel: ProductViewModel = viewModel(),
+    cartViewModel: CartViewModel = viewModel()
 ) {
 
     val categories by categoryViewModel.categories.collectAsState()
@@ -66,6 +73,29 @@ fun HomeContent(
 
     val products by productViewModel.products.collectAsState()
     val isLoadingProduct by productViewModel.isLoading.collectAsState()
+
+    val context = LocalContext.current
+    val addToCartState by cartViewModel.addToCartState.collectAsState()
+
+    LaunchedEffect(addToCartState) {
+        when (addToCartState) {
+            is AddToCartState.Success -> {
+                Toast.makeText(context, "Đã thêm vào giỏ hàng!", Toast.LENGTH_SHORT).show()
+                cartViewModel.resetState()
+            }
+
+            is AddToCartState.Error -> {
+                Toast.makeText(
+                    context,
+                    (addToCartState as AddToCartState.Error).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                cartViewModel.resetState()
+            }
+
+            else -> {}
+        }
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -75,7 +105,6 @@ fun HomeContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        // ── CATEGORY TITLE ──
         item(span = { GridItemSpan(2) }) {
             Text(
                 text = "Categories",
@@ -84,7 +113,6 @@ fun HomeContent(
             )
         }
 
-        // ── CATEGORY LIST ──
         item(span = { GridItemSpan(2) }) {
             if (isLoadingCategory) {
                 Box(
@@ -106,7 +134,6 @@ fun HomeContent(
             }
         }
 
-        // ── PRODUCT TITLE ──
         item(span = { GridItemSpan(2) }) {
             Text(
                 text = "Products",
@@ -115,7 +142,6 @@ fun HomeContent(
             )
         }
 
-        // ── PRODUCT LIST ──
         if (isLoadingProduct) {
             item(span = { GridItemSpan(2) }) {
                 Box(
@@ -129,7 +155,10 @@ fun HomeContent(
             }
         } else {
             items(products) { product ->
-                ProductItem(product = product)
+                ProductItem(
+                    product = product,
+                    cartViewModel = cartViewModel
+                )
             }
         }
     }

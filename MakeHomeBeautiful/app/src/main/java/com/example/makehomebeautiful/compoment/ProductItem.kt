@@ -1,5 +1,6 @@
 package com.example.makehomebeautiful.compoment
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,16 +19,37 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.makehomebeautiful.models.Product
+import com.example.makehomebeautiful.utils.formatPrice
+import com.example.makehomebeautiful.viewmodels.AddToCartState
+import com.example.makehomebeautiful.viewmodels.CartViewModel
 
 @Composable
-fun ProductItem(product: Product) {
+fun ProductItem(
+    product: Product,
+    cartViewModel: CartViewModel = viewModel()
+) {
     var isFavorite by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+
+    val addToCartState by cartViewModel.addToCartState.collectAsState()
+    val isLoading = addToCartState is AddToCartState.Loading
+
+    LaunchedEffect(addToCartState) {
+        when (addToCartState) {
+            is AddToCartState.Success -> {
+                showDialog = false  // ← đóng dialog ở đây
+            }
+            else -> {}
+        }
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -35,8 +58,6 @@ fun ProductItem(product: Product) {
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column {
-
-            // ── IMAGE + BOOKMARK ──
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -51,7 +72,6 @@ fun ProductItem(product: Product) {
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 )
 
-                // Bookmark với nền trắng để dễ nhìn trên mọi ảnh
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -60,13 +80,10 @@ fun ProductItem(product: Product) {
                         .size(30.dp)
                         .shadow(2.dp, CircleShape)
                         .background(Color.White, CircleShape)
-                        .clickable { isFavorite = !isFavorite }
-                ) {
+                        .clickable { isFavorite = !isFavorite }) {
                     Icon(
-                        imageVector = if (isFavorite)
-                            Icons.Default.Bookmark
-                        else
-                            Icons.Default.BookmarkBorder,
+                        imageVector = if (isFavorite) Icons.Default.Bookmark
+                        else Icons.Default.BookmarkBorder,
                         contentDescription = "Bookmark",
                         tint = if (isFavorite) Color(0xFFFF6B35) else Color.Gray,
                         modifier = Modifier.size(16.dp)
@@ -74,7 +91,6 @@ fun ProductItem(product: Product) {
                 }
             }
 
-            // ── INFO + ADD BUTTON ──
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,7 +98,6 @@ fun ProductItem(product: Product) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Tên, Giá, Số lượng
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = product.product_name,
@@ -93,29 +108,25 @@ fun ProductItem(product: Product) {
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Giá: ${product.price}$",
+                        text = "Giá: ${formatPrice(product.price)}",
                         color = Color(0xFFFF6B35),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Còn: ${product.quantity}",
-                        color = Color.Gray,
-                        fontSize = 11.sp
+                        text = "Còn: ${product.quantity}", color = Color.Gray, fontSize = 11.sp
                     )
                 }
 
                 Spacer(modifier = Modifier.width(6.dp))
 
-                // Nút Add với icon giỏ hàng
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(36.dp)
                         .background(Color(0xFFFF6B35), CircleShape)
-                        .clickable { /* TODO: add to cart */ }
-                ) {
+                        .clickable { showDialog = true }) {
                     Icon(
                         imageVector = Icons.Default.ShoppingCart,
                         contentDescription = "Add to cart",
@@ -125,5 +136,20 @@ fun ProductItem(product: Product) {
                 }
             }
         }
+    }
+
+    if (showDialog) {
+        AddToCartDialog(
+            product = product,
+            isLoading = isLoading,
+            onDismiss = { if (!isLoading) showDialog = false },
+            onConfirm = { qty ->
+                cartViewModel.addToCart(
+                    productId = product._id,
+                    quantity = qty,
+                    price = product.price
+                )
+            }
+        )
     }
 }
