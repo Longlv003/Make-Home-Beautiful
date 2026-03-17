@@ -1,5 +1,4 @@
 const { productModel } = require("../models/product.model");
-const { getImageUrl } = require("../helpers/imageHelper");
 
 exports.GetListProductInStock = async (req, res, next) => {
   let dataRes = { msg: "OK" };
