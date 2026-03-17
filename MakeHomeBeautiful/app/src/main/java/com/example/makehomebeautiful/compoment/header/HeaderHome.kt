@@ -3,6 +3,7 @@ package com.example.makehomebeautiful.compoment.header
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -18,30 +19,24 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun HeaderHome() {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(25.dp),
+            .height(64.dp)
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Icon(Icons.Default.Search, contentDescription = null)
 
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            Text(
-                "Make home",
-                fontSize = 20.sp
-            )
-
+            Text("Make Home", fontSize = 13.sp)
             Text(
                 "Beautiful",
                 fontWeight = FontWeight.Bold,
-                fontSize = 28.sp
+                fontSize = 18.sp
             )
         }
 

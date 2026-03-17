@@ -23,7 +23,12 @@ exports.GetListCategoryInStock = async (req, res, next) => {
         })
         .sort({ createdAt: -1 });
 
-      dataRes.data = categories;
+      // dataRes.data = categories;
+
+      dataRes.data = categories.map((cat) => ({
+        ...cat._doc,
+        icon_category: `${req.protocol}://${req.get("host")}/images/categories/${cat.icon_category}`,
+      }));
     }
   } catch (error) {
     dataRes.msg = error.message;
