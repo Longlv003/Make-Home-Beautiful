@@ -1,44 +1,5 @@
-const admin = require("../config/firebaseAdmin");
+const admin = require("../configs/firebase.config");
 const { accModel } = require("../models/account.model");
-
-exports.doReg = async (req, res, next) => {
-  try {
-    const { firebase_uid, name, email } = req.body;
-
-    if (!firebase_uid || !email) {
-      return res
-        .status(400)
-        .json({ dataRes: { msg: "Missing required fields", data: null } });
-    }
-
-    const existed = await accModel.findOne({ firebase_uid }).lean();
-    if (existed) {
-      return res
-        .status(400)
-        .json({ dataRes: { msg: "Account already exists", data: null } });
-    }
-
-    const newUser = new accModel({
-      firebase_uid,
-      name: name || null,
-      email,
-    });
-
-    await newUser.save();
-
-    return res.status(201).json({
-      dataRes: {
-        msg: "Register successful",
-        data: newUser,
-      },
-    });
-  } catch (err) {
-    console.error(err);
-    return res
-      .status(500)
-      .json({ dataRes: { msg: "Server error", data: null } });
-  }
-};
 
 exports.verifyFirebaseUser = async (req, res, next) => {
   try {

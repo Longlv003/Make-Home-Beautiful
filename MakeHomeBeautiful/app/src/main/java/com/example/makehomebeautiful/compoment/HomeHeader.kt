@@ -16,27 +16,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.makehomebeautiful.compoment.header.HeaderBookmark
 import com.example.makehomebeautiful.compoment.header.HeaderHome
 import com.example.makehomebeautiful.compoment.header.HeaderNotification
 import com.example.makehomebeautiful.compoment.header.HeaderProfile
 
 @Composable
-fun HomeHeader(route: String?) {
-
+fun HomeHeader(route: String?, navController: NavController) {
     when (route) {
-
-        "home" -> {
-            HeaderHome()
-        }
-        "bookmark" -> {
-            HeaderBookmark()
-        }
-        "notification" -> {
-            HeaderNotification()
-        }
-        "profile" -> {
-            HeaderProfile()
-        }
+        "home" -> HeaderHome(navController)
+        "bookmark" -> HeaderBookmark(navController)
+        "notification" -> HeaderNotification()
+        "profile" -> HeaderProfile()
     }
 }

@@ -15,14 +15,19 @@ exports.GetListProductInStock = async (req, res, next) => {
 
     const products = await productModel
       .find(filter)
-      .populate("category_id")
+      // .populate("category_id")
       .sort({ createdAt: -1 });
 
     if (!products.length) {
       dataRes.msg = "No products found";
       dataRes.data = [];
     } else {
-      dataRes.data = products;
+      // dataRes.data = products;
+
+      dataRes.data = products.map((pro) => ({
+        ...pro._doc,
+        image: `${req.protocol}://${req.get("host")}/images/products/${pro.image}`,
+      }));
     }
   } catch (error) {
     dataRes.msg = error.message;
