@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -16,13 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.makehomebeautiful.compoment.AddressFormDialog
+import com.example.makehomebeautiful.models.Address
 import com.example.makehomebeautiful.utils.formatPrice
 import com.example.makehomebeautiful.viewmodels.CartViewModel
 import com.example.makehomebeautiful.viewmodels.CheckoutViewModel
@@ -32,7 +32,7 @@ import com.example.makehomebeautiful.viewmodels.ShippingMethod
 @Composable
 fun CheckoutScreen(
     navController: NavController,
-    cartViewModel: CartViewModel ,
+    cartViewModel: CartViewModel,
     checkoutViewModel: CheckoutViewModel = viewModel()
 ) {
     val cartItems by cartViewModel.cartItems.collectAsState()
@@ -47,6 +47,9 @@ fun CheckoutScreen(
     val subtotal = cartItems.sumOf { it.price * it.quantity }
 
     var showAddressDialog by remember { mutableStateOf(false) }
+    var showAddressFormDialog by remember { mutableStateOf(false) }
+    var addressToEdit by remember { mutableStateOf<Address?>(null) }
+    val isUpdatingAddress by checkoutViewModel.isUpdatingAddress.collectAsState()
 
     LaunchedEffect(Unit) {
         checkoutViewModel.loadAddresses()
@@ -108,13 +111,23 @@ fun CheckoutScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Địa chỉ giao hàng", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        "Địa chỉ giao hàng",
+                                        fontSize = 13.sp,
+                                        color = Color.Gray,
+                                        fontWeight = FontWeight.Medium
+                                    )
                                     if (selectedAddress != null) {
                                         IconButton(
                                             onClick = { showAddressDialog = true },
                                             modifier = Modifier.size(32.dp)
                                         ) {
-                                            Icon(Icons.Default.Edit, contentDescription = "Chọn địa chỉ khác", modifier = Modifier.size(16.dp), tint = Color.Gray)
+                                            Icon(
+                                                Icons.Default.Edit,
+                                                contentDescription = "Chọn địa chỉ khác",
+                                                modifier = Modifier.size(16.dp),
+                                                tint = Color.Gray
+                                            )
                                         }
                                     }
                                 }
@@ -122,47 +135,25 @@ fun CheckoutScreen(
                                 Spacer(Modifier.height(10.dp))
 
                                 if (selectedAddress == null) {
-                                    // Form nhập địa chỉ mới
-                                    var name by remember { mutableStateOf("") }
-                                    var phone by remember { mutableStateOf("") }
-                                    var address by remember { mutableStateOf("") }
-
-                                    OutlinedTextField(
-                                        value = name,
-                                        onValueChange = { name = it },
-                                        label = { Text("Tên") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(10.dp),
-                                        singleLine = true
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-                                    OutlinedTextField(
-                                        value = phone,
-                                        onValueChange = { phone = it },
-                                        label = { Text("Số điện thoại") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(10.dp),
-                                        singleLine = true,
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-                                    OutlinedTextField(
-                                        value = address,
-                                        onValueChange = { address = it },
-                                        label = { Text("Địa chỉ") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(10.dp),
-                                        minLines = 2
-                                    )
-                                    Spacer(Modifier.height(10.dp))
                                     OutlinedButton(
-                                        onClick = { /* TODO: gọi API thêm địa chỉ với name, phone, address */ },
+                                        onClick = {
+                                            addressToEdit = null
+                                            showAddressFormDialog = true
+                                        },
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(10.dp),
                                         border = BorderStroke(1.dp, Color(0xFF1D9E75)),
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1D9E75))
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = Color(
+                                                0xFF1D9E75
+                                            )
+                                        )
                                     ) {
-                                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Icon(
+                                            Icons.Default.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
                                         Spacer(Modifier.width(6.dp))
                                         Text("Thêm địa chỉ giao hàng", fontSize = 14.sp)
                                     }
@@ -180,16 +171,38 @@ fun CheckoutScreen(
                                             verticalAlignment = Alignment.Top
                                         ) {
                                             Column(modifier = Modifier.weight(1f)) {
-                                                Text(selectedAddress!!.name, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                                Text(selectedAddress!!.phone, fontSize = 12.sp, color = Color.Gray)
+                                                Text(
+                                                    selectedAddress!!.name,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = 14.sp
+                                                )
                                                 Spacer(Modifier.height(4.dp))
-                                                Text(selectedAddress!!.address, fontSize = 12.sp, color = Color.Gray, lineHeight = 18.sp)
+                                                Text(
+                                                    selectedAddress!!.phone,
+                                                    fontSize = 12.sp,
+                                                    color = Color.Gray
+                                                )
+                                                Spacer(Modifier.height(4.dp))
+                                                Text(
+                                                    selectedAddress!!.address,
+                                                    fontSize = 12.sp,
+                                                    color = Color.Gray,
+                                                    lineHeight = 18.sp
+                                                )
                                             }
                                             IconButton(
-                                                onClick = { /* TODO: navigate sang EditAddressScreen */ },
+                                                onClick = {
+                                                    addressToEdit = selectedAddress
+                                                    showAddressFormDialog = true
+                                                },
                                                 modifier = Modifier.size(28.dp)
                                             ) {
-                                                Icon(Icons.Default.Edit, contentDescription = "Sửa địa chỉ", modifier = Modifier.size(14.dp), tint = Color.Gray)
+                                                Icon(
+                                                    Icons.Default.Edit,
+                                                    contentDescription = "Sửa địa chỉ",
+                                                    modifier = Modifier.size(14.dp),
+                                                    tint = Color.Gray
+                                                )
                                             }
                                         }
                                     }
@@ -207,12 +220,23 @@ fun CheckoutScreen(
                             border = BorderStroke(0.5.dp, Color(0xFFE0E0E0))
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
-                                Text("Phương thức thanh toán", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                                Text(
+                                    "Phương thức thanh toán",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Medium
+                                )
                                 Spacer(Modifier.height(10.dp))
 
                                 listOf(
-                                    PaymentMethod.CASH to Pair("Tiền mặt khi nhận hàng", "Thanh toán khi nhận"),
-                                    PaymentMethod.ONLINE to Pair("Chuyển khoản online", "Ngân hàng / Ví điện tử")
+                                    PaymentMethod.CASH to Pair(
+                                        "Tiền mặt khi nhận hàng",
+                                        "Thanh toán khi nhận"
+                                    ),
+                                    PaymentMethod.ONLINE to Pair(
+                                        "Chuyển khoản online",
+                                        "Ngân hàng / Ví điện tử"
+                                    )
                                 ).forEach { (method, info) ->
                                     val isSelected = selectedPayment == method
                                     Surface(
@@ -233,13 +257,25 @@ fun CheckoutScreen(
                                             RadioButton(
                                                 selected = isSelected,
                                                 onClick = { checkoutViewModel.selectPayment(method) },
-                                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF1D9E75)),
+                                                colors = RadioButtonDefaults.colors(
+                                                    selectedColor = Color(
+                                                        0xFF1D9E75
+                                                    )
+                                                ),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.width(10.dp))
                                             Column {
-                                                Text(info.first, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                                Text(info.second, fontSize = 11.sp, color = Color.Gray)
+                                                Text(
+                                                    info.first,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                                Text(
+                                                    info.second,
+                                                    fontSize = 11.sp,
+                                                    color = Color.Gray
+                                                )
                                             }
                                         }
                                     }
@@ -258,7 +294,12 @@ fun CheckoutScreen(
                             border = BorderStroke(0.5.dp, Color(0xFFE0E0E0))
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
-                                Text("Tổng quan đơn hàng", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                                Text(
+                                    "Tổng quan đơn hàng",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Medium
+                                )
                                 Spacer(Modifier.height(10.dp))
 
                                 // Danh sách sản phẩm từ cart
@@ -269,15 +310,31 @@ fun CheckoutScreen(
                                             .padding(vertical = 3.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Text("${item.product_id.product_name} x${item.quantity}", fontSize = 13.sp, color = Color.Gray)
-                                        Text(formatPrice(item.price * item.quantity), fontSize = 13.sp, color = Color.Gray)
+                                        Text(
+                                            "${item.product_id.product_name} x${item.quantity}",
+                                            fontSize = 13.sp,
+                                            color = Color.Gray
+                                        )
+                                        Text(
+                                            formatPrice(item.price * item.quantity),
+                                            fontSize = 13.sp,
+                                            color = Color.Gray
+                                        )
                                     }
                                 }
 
-                                Divider(modifier = Modifier.padding(vertical = 10.dp), color = Color(0xFFEEEEEE))
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 10.dp),
+                                    color = Color(0xFFEEEEEE)
+                                )
 
                                 // Shipping method
-                                Text("Phương thức giao hàng", fontSize = 13.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                                Text(
+                                    "Phương thức giao hàng",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Medium
+                                )
                                 Spacer(Modifier.height(8.dp))
 
                                 ShippingMethod.entries.forEach { method ->
@@ -303,14 +360,28 @@ fun CheckoutScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 RadioButton(
                                                     selected = isSelected,
-                                                    onClick = { checkoutViewModel.selectShipping(method) },
-                                                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF1D9E75)),
+                                                    onClick = {
+                                                        checkoutViewModel.selectShipping(
+                                                            method
+                                                        )
+                                                    },
+                                                    colors = RadioButtonDefaults.colors(
+                                                        selectedColor = Color(0xFF1D9E75)
+                                                    ),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                                 Spacer(Modifier.width(8.dp))
                                                 Column {
-                                                    Text(method.label, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                                    Text(method.duration, fontSize = 11.sp, color = Color.Gray)
+                                                    Text(
+                                                        method.label,
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                    Text(
+                                                        method.duration,
+                                                        fontSize = 11.sp,
+                                                        color = Color.Gray
+                                                    )
                                                 }
                                             }
                                             Text(
@@ -323,20 +394,44 @@ fun CheckoutScreen(
                                     Spacer(Modifier.height(6.dp))
                                 }
 
-                                Divider(modifier = Modifier.padding(vertical = 10.dp), color = Color(0xFFEEEEEE))
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 10.dp),
+                                    color = Color(0xFFEEEEEE)
+                                )
 
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                     Text("Tạm tính", fontSize = 13.sp, color = Color.Gray)
-                                    Text(formatPrice(subtotal), fontSize = 13.sp, color = Color.Gray)
+                                    Text(
+                                        formatPrice(subtotal),
+                                        fontSize = 13.sp,
+                                        color = Color.Gray
+                                    )
                                 }
                                 Spacer(Modifier.height(4.dp))
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                     Text("Phí vận chuyển", fontSize = 13.sp, color = Color.Gray)
-                                    Text(formatPrice(selectedShipping.price.toDouble()), fontSize = 13.sp, color = Color.Gray)
+                                    Text(
+                                        formatPrice(selectedShipping.price.toDouble()),
+                                        fontSize = 13.sp,
+                                        color = Color.Gray
+                                    )
                                 }
                                 Spacer(Modifier.height(8.dp))
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("Tổng cộng", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "Tổng cộng",
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                     Text(
                                         formatPrice(subtotal + selectedShipping.price),
                                         fontSize = 15.sp,
@@ -366,9 +461,18 @@ fun CheckoutScreen(
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2A))
         ) {
             if (isPlacingOrder) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
             } else {
-                Text("Đặt hàng", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(
+                    "Đặt hàng",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
             }
         }
     }
@@ -412,14 +516,27 @@ fun CheckoutScreen(
                                         checkoutViewModel.selectAddress(address)
                                         showAddressDialog = false
                                     },
-                                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF1D9E75)),
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = Color(
+                                            0xFF1D9E75
+                                        )
+                                    ),
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.width(10.dp))
                                 Column {
-                                    Text(address.name, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        address.name,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
                                     Text(address.phone, fontSize = 12.sp, color = Color.Gray)
-                                    Text(address.address, fontSize = 12.sp, color = Color.Gray, lineHeight = 17.sp)
+                                    Text(
+                                        address.address,
+                                        fontSize = 12.sp,
+                                        color = Color.Gray,
+                                        lineHeight = 17.sp
+                                    )
                                 }
                             }
                         }
@@ -430,19 +547,47 @@ fun CheckoutScreen(
                     OutlinedButton(
                         onClick = {
                             showAddressDialog = false
-                            // TODO: navigate sang AddAddressScreen
+                            addressToEdit = null
+                            showAddressFormDialog = true
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         border = BorderStroke(1.dp, Color(0xFF1D9E75)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1D9E75))
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
                         Spacer(Modifier.width(6.dp))
                         Text("Thêm địa chỉ mới")
                     }
                 }
             }
         }
+    }
+
+    if (showAddressFormDialog) {
+        AddressFormDialog(
+            initialAddress = addressToEdit,
+            isLoading = isUpdatingAddress,  // ← THÊM: truyền vào dialog để hiện loading
+            onConfirm = { name, phone, address ->
+                if (addressToEdit == null) {
+                    checkoutViewModel.addAddress(name, phone, address)
+                    showAddressFormDialog = false  // add thì đóng ngay như cũ
+                } else {
+                    checkoutViewModel.updateAddress(
+                        id = addressToEdit!!._id,
+                        name = name,
+                        phone = phone,
+                        address = address,
+                        onDone = { showAddressFormDialog = false }  // ← đóng sau khi xong
+                    )
+                    // KHÔNG đóng dialog ở đây nữa
+                }
+            },
+            onDismiss = { showAddressFormDialog = false }
+        )
     }
 }

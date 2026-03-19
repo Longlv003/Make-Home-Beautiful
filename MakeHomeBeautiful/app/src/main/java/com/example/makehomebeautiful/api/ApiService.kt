@@ -10,9 +10,12 @@ import com.example.makehomebeautiful.models.Product
 import com.example.makehomebeautiful.models.RegisterRequest
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface ApiService {
     @POST("verifyFirebaseUser")
@@ -43,12 +46,27 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<DataRes<List<CartItem>>>
 
+    @GET("account/address")
     suspend fun getAddresses(
         @Header("Authorization") token: String
-    ): Response<DataResponse<List<Address>>>
+    ): Response<DataRes<List<Address>>>
 
+    @POST("account/address")
     suspend fun addAddress(
         @Header("Authorization") token: String,
         @Body request: AddAddressRequest
-    ): Response<DataResponse<Address>>
+    ): Response<DataRes<Address>>
+
+    @PUT("account/address/{id}")
+    suspend fun updateAddress(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: AddAddressRequest
+    ): Response<DataRes<Address>>
+
+    @DELETE("account/address/{id}")
+    suspend fun deleteAddress(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): Response<DataRes<Any>>
 }
