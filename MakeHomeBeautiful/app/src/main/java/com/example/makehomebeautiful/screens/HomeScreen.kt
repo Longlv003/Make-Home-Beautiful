@@ -38,6 +38,8 @@ fun HomeScreen() {
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry.value?.destination?.route
 
+    val cartViewModel: CartViewModel = viewModel()
+
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
         topBar = {
@@ -52,8 +54,13 @@ fun HomeScreen() {
             startDestination = "home",
             modifier = Modifier.padding(padding)
         ) {
-            composable("home") { HomeContent() }
-            composable("cart") { CartScreen(navController) }
+            composable("home") { HomeContent(cartViewModel = cartViewModel) }
+            composable("cart") {
+                CartScreen(navController = navController, cartViewModel = cartViewModel)
+            }
+            composable("checkout") {
+                CheckoutScreen(navController = navController, cartViewModel = cartViewModel)
+            }
             composable("bookmark") { BookmarkScreen() }
             composable("notification") { NotificationScreen() }
             composable("profile") { ProfileScreen() }
@@ -65,7 +72,7 @@ fun HomeScreen() {
 fun HomeContent(
     categoryViewModel: CategoryViewModel = viewModel(),
     productViewModel: ProductViewModel = viewModel(),
-    cartViewModel: CartViewModel = viewModel()
+    cartViewModel: CartViewModel
 ) {
 
     val categories by categoryViewModel.categories.collectAsState()

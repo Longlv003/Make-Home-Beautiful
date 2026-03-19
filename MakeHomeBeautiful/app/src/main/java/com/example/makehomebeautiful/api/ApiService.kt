@@ -1,7 +1,9 @@
 package com.example.makehomebeautiful.api
 
 import com.example.makehomebeautiful.models.Account
+import com.example.makehomebeautiful.models.AddAddressRequest
 import com.example.makehomebeautiful.models.AddToCartRequest
+import com.example.makehomebeautiful.models.Address
 import com.example.makehomebeautiful.models.CartItem
 import com.example.makehomebeautiful.models.Category
 import com.example.makehomebeautiful.models.Product
@@ -40,4 +42,13 @@ interface ApiService {
     suspend fun getCart(
         @Header("Authorization") token: String
     ): Response<DataRes<List<CartItem>>>
+
+    suspend fun getAddresses(
+        @Header("Authorization") token: String
+    ): Response<DataResponse<List<Address>>>
+
+    suspend fun addAddress(
+        @Header("Authorization") token: String,
+        @Body request: AddAddressRequest
+    ): Response<DataResponse<Address>>
 }

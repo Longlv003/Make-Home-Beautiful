@@ -46,9 +46,9 @@ class CartViewModel : ViewModel() {
                     )
                 )
 
-                Log.d("CART", "Response code: ${response.code()}")
-                Log.d("CART", "Response body: ${response.body()}")
-                Log.d("CART", "Error body: ${response.errorBody()?.string()}")
+//                Log.d("CART", "Response code: ${response.code()}")
+//                Log.d("CART", "Response body: ${response.body()}")
+//                Log.d("CART", "Error body: ${response.errorBody()?.string()}")
 
                 if (response.isSuccessful) {
                     _addToCartState.value = AddToCartState.Success
