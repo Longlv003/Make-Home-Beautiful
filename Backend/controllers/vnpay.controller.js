@@ -24,7 +24,7 @@ exports.buildVNPayUrl = async (order, req) => {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   const paymentUrl = await vnpay.buildPaymentUrl({
-    vnp_Amount: order.total_amount,
+    vnp_Amount: order.finalAmount,
     vnp_IpAddr:
       req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1",
     vnp_TxnRef: order._id.toString(),

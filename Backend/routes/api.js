@@ -15,6 +15,12 @@ router.post("/verifyFirebaseUser", accCtrl.verifyFirebaseUser);
 // Address
 router.post("/account/address", jwt.verifyToken, addressCtrl.AddAddress);
 router.get("/account/address", jwt.verifyToken, addressCtrl.GetAddresses);
+router.put("/account/address/:id", jwt.verifyToken, addressCtrl.UpdateAddress);
+router.delete(
+  "/account/address/:id",
+  jwt.verifyToken,
+  addressCtrl.DeleteAddress,
+);
 
 // Category
 router.get("/category/get-list-in-stock", categoryCtrl.GetListCategoryInStock);

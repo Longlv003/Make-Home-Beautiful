@@ -13,7 +13,7 @@ exports.createOrder = async (req, res) => {
 
   try {
     const account_id = req.user._id;
-    const { address_id, paymentMethod } = req.body;
+    const { address_id, paymentMethod, shipping } = req.body;
 
     if (!address_id || !paymentMethod) {
       dataRes.msg = "Missing required fields";
@@ -25,8 +25,11 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json(dataRes);
     }
 
-    // Chỉ block nếu đang có order PENDING + UNPAID thật sự (chưa qua VNPay lần nào)
-    // Không block nếu order trước đó đã PAYMENT_FAILED — user được phép tạo đơn mới
+    if (shipping === undefined || shipping < 0) {
+      dataRes.msg = "Invalid shipping fee";
+      return res.status(400).json(dataRes);
+    }
+
     const existingOrder = await orderModel.findOne({
       account_id,
       order_status: "PENDING",
@@ -51,10 +54,14 @@ exports.createOrder = async (req, res) => {
       0,
     );
 
+    const finalAmount = total_amount + shipping;
+
     const order = await orderModel.create({
       account_id,
       address_id,
       total_amount,
+      shipping,
+      finalAmount,
       payment_method: paymentMethod,
       payment_status: "UNPAID",
       order_status: "PENDING",
@@ -103,7 +110,6 @@ exports.cancelOrder = async (req, res) => {
       return res.status(404).json(dataRes);
     }
 
-    // Cho phép cancel cả PENDING lẫn PAYMENT_FAILED
     const cancellableStatuses = ["PENDING", "PAYMENT_FAILED"];
     if (
       !cancellableStatuses.includes(order.order_status) ||
@@ -150,13 +156,11 @@ exports.retryPayment = async (req, res) => {
       return res.status(400).json(dataRes);
     }
 
-    // Chỉ cho retry khi order đang ở trạng thái PAYMENT_FAILED
     if (order.order_status !== "PAYMENT_FAILED") {
       dataRes.msg = "Order cannot be retried";
       return res.status(400).json(dataRes);
     }
 
-    // Reset về PENDING + UNPAID trước khi tạo URL mới
     await orderModel.findByIdAndUpdate(order._id, {
       order_status: "PENDING",
       payment_status: "UNPAID",
